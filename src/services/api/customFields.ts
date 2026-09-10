@@ -11,6 +11,10 @@ import { mcpLog } from '../../utils/logger';
 import { ResourceContext } from './types';
 import { getErrorMessage } from './ApiClient';
 
+// Motion's beta endpoints live at /beta, not under the /v1 base URL
+// (GET /v1/beta/... returns 404). Absolute URLs bypass the axios baseURL.
+const MOTION_BETA_BASE_URL = 'https://api.usemotion.com/beta';
+
 export async function getCustomFields(ctx: ResourceContext, workspaceId: string): Promise<MotionCustomField[]> {
   const cacheKey = `custom-fields:${workspaceId}`;
 
@@ -21,7 +25,7 @@ export async function getCustomFields(ctx: ResourceContext, workspaceId: string)
         workspaceId
       });
 
-      const url = `/beta/workspaces/${workspaceId}/custom-fields`;
+      const url = `${MOTION_BETA_BASE_URL}/workspaces/${workspaceId}/custom-fields`;
 
       const response: AxiosResponse<MotionCustomField[]> = await ctx.api.requestWithRetry(() => ctx.api.client.get(url));
 
@@ -70,7 +74,7 @@ export async function createCustomField(ctx: ResourceContext, workspaceId: strin
     const minimalPayload = createMinimalPayload(apiPayload);
 
     const response: AxiosResponse<MotionCustomField> = await ctx.api.requestWithRetry(() =>
-      ctx.api.client.post(`/beta/workspaces/${workspaceId}/custom-fields`, minimalPayload)
+      ctx.api.client.post(`${MOTION_BETA_BASE_URL}/workspaces/${workspaceId}/custom-fields`, minimalPayload)
     );
 
     // Invalidate cache after successful creation
@@ -106,7 +110,7 @@ export async function deleteCustomField(ctx: ResourceContext, workspaceId: strin
     });
 
     await ctx.api.requestWithRetry(() =>
-      ctx.api.client.delete(`/beta/workspaces/${workspaceId}/custom-fields/${fieldId}`)
+      ctx.api.client.delete(`${MOTION_BETA_BASE_URL}/workspaces/${workspaceId}/custom-fields/${fieldId}`)
     );
 
     // Invalidate cache after successful deletion
@@ -163,7 +167,7 @@ export async function addCustomFieldToProject(ctx: ResourceContext, projectId: s
     }
 
     const response: AxiosResponse<MotionCustomFieldValue> = await ctx.api.requestWithRetry(() =>
-      ctx.api.client.post(`/beta/custom-field-values/project/${projectId}`, requestData)
+      ctx.api.client.post(`${MOTION_BETA_BASE_URL}/custom-field-values/project/${projectId}`, requestData)
     );
 
     // Invalidate project cache broadly — the API response is { type, value },
@@ -199,7 +203,7 @@ export async function removeCustomFieldFromProject(ctx: ResourceContext, project
     });
 
     await ctx.api.requestWithRetry(() =>
-      ctx.api.client.delete(`/beta/custom-field-values/project/${projectId}/custom-fields/${valueId}`)
+      ctx.api.client.delete(`${MOTION_BETA_BASE_URL}/custom-field-values/project/${projectId}/custom-fields/${valueId}`)
     );
 
     // Invalidate all project caches since we don't have workspace context here
@@ -256,7 +260,7 @@ export async function addCustomFieldToTask(ctx: ResourceContext, taskId: string,
     }
 
     const response: AxiosResponse<MotionCustomFieldValue> = await ctx.api.requestWithRetry(() =>
-      ctx.api.client.post(`/beta/custom-field-values/task/${taskId}`, requestData)
+      ctx.api.client.post(`${MOTION_BETA_BASE_URL}/custom-field-values/task/${taskId}`, requestData)
     );
 
     mcpLog(LOG_LEVELS.INFO, 'Custom field added to task successfully', {
@@ -288,7 +292,7 @@ export async function removeCustomFieldFromTask(ctx: ResourceContext, taskId: st
     });
 
     await ctx.api.requestWithRetry(() =>
-      ctx.api.client.delete(`/beta/custom-field-values/task/${taskId}/custom-fields/${valueId}`)
+      ctx.api.client.delete(`${MOTION_BETA_BASE_URL}/custom-field-values/task/${taskId}/custom-fields/${valueId}`)
     );
 
     mcpLog(LOG_LEVELS.INFO, 'Custom field removed from task successfully', {
