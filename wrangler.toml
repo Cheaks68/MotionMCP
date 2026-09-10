@@ -13,7 +13,7 @@ tag = "v1"
 new_sqlite_classes = ["MotionMCPAgent"]
 
 [vars]
-MOTION_MCP_TOOLS = "essential"
+MOTION_MCP_TOOLS = "complete"
 
 [observability.logs]
 enabled = true
